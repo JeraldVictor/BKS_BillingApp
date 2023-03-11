@@ -1,9 +1,16 @@
 <template>
-  <div><h1 class="text-center">About</h1></div>
+  <div>
+    <PrintBill></PrintBill>
+  </div>
 </template>
 
 <script>
-export default {};
+import PrintBill from "../components/General/PrintBill.vue";
+export default {
+  components: {
+    PrintBill,
+  },
+};
 </script>
 
 <style></style>

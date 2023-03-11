@@ -5,6 +5,7 @@ export default {
   state: {
     items: [],
     order: [],
+    completedOrder: {},
   },
   getters: {
     items(state) {
@@ -13,6 +14,9 @@ export default {
     order(state) {
       return state.order;
     },
+    completedOrder(state) {
+      return state.completedOrder;
+    },
   },
   mutations: {
     setItems(state, data) {
@@ -20,6 +24,9 @@ export default {
     },
     setOrder(state, data) {
       state.order = data;
+    },
+    setCompletedOrder(state, data) {
+      state.completedOrder = data;
     },
     setQty(state, { index, qty }) {
       state.items[index].qty = qty;
@@ -45,9 +52,10 @@ export default {
       if (!check) {
         data.qty = 1;
         data.total = Number(data.rate) * Number(data.qty);
-        let { id, ...otherData } = data;
+        let { id, name, productName, ...otherData } = data;
         state.items.push({
           i_id: id,
+          name: productName,
           ...otherData,
         });
       } else {
@@ -103,7 +111,7 @@ export default {
           },
           { root: true }
         );
-
+        await commit("setCompletedOrder", resData.order);
         return true;
       } catch (error) {
         await commit("setError", error, { root: true });
@@ -122,6 +130,45 @@ export default {
 
         commit("setOrder", resData.orders);
 
+        return true;
+      } catch (error) {
+        await commit("setError", error, { root: true });
+        return false;
+      } finally {
+        await commit("setLoading", false, { root: true });
+      }
+    },
+    async UPDATE_ORDERS({ commit }, data) {
+      await commit("setLoading", true, { root: true });
+      try {
+        let { data: resData } = await axios.put(HOST + "/Order", data);
+        if (resData.status != 200) {
+          throw Error(resData.message);
+        }
+        return true;
+      } catch (error) {
+        await commit("setError", error, { root: true });
+        return false;
+      } finally {
+        await commit("setLoading", false, { root: true });
+      }
+    },
+    async SET_PRINT_ORDER({ commit }, data) {
+      await commit("setLoading", true, { root: true });
+      try {
+        await commit("setCompletedOrder", data);
+        return true;
+      } catch (error) {
+        await commit("setError", error, { root: true });
+        return false;
+      } finally {
+        await commit("setLoading", false, { root: true });
+      }
+    },
+    async SMALL_PRINT_ORDER({ commit }, data) {
+      await commit("setLoading", true, { root: true });
+      try {
+        let { data: resData } = await axios.post("http://localhost:3001", data);
         return true;
       } catch (error) {
         await commit("setError", error, { root: true });
